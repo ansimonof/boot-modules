@@ -1,5 +1,6 @@
 package org.myorg.modules.modules;
 
+import org.myorg.modules.modules.exception.ModuleException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,7 @@ public class Modules {
     }
 
     @PostConstruct
-    private void init() {
+    private void init() throws ModuleException {
         modules = modules.stream()
                 .sorted((o1, o2) -> {
                     if (!o2.getClass().isAnnotationPresent(Priority.class)) {
@@ -34,11 +35,13 @@ public class Modules {
                     }
                 })
                 .collect(Collectors.toList());
-        modules.forEach(Module::init);
+        for (Module module : modules) {
+            module.init();
+        }
     }
 
     @PreDestroy
-    private void destroy() {
+    private void destroy() throws ModuleException {
         for (int i = modules.size() - 1; i > -1; i--) {
             modules.get(i).destroy();
         }

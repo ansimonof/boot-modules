@@ -60,7 +60,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
             authentication.setDetails(method);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (Exception e) {
-            throw new AuthenticationServiceException("Unknown mapping", e);
+            throw new AuthenticationServiceException("Unknown mapping: " + request.getRequestURI());
         }
 
         filterChain.doFilter(request, response);

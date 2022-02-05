@@ -4,11 +4,11 @@ import org.myorg.modules.access.context.ApiKeyContext;
 import org.myorg.modules.access.context.source.ApiKeySource;
 import org.myorg.modules.access.privilege.AccessOpCollection;
 import org.myorg.modules.access.privilege.PrivilegePair;
-import org.myorg.modules.crypto.CryptoService;
-import org.myorg.modules.modules.core.domainobjects.DbAccessRole;
-import org.myorg.modules.modules.core.domainobjects.DbApiKey;
-import org.myorg.modules.modules.core.domainobjects.DbPrivilege;
-import org.myorg.modules.modules.core.service.database.apikey.DbApiKeyService;
+import org.myorg.modules.modules.core.database.service.accessrole.AccessRoleDto;
+import org.myorg.modules.modules.core.database.service.accessrole.PrivilegeDto;
+import org.myorg.modules.modules.core.database.service.apikey.ApiKeyDto;
+import org.myorg.modules.modules.core.database.service.apikey.ApiKeyService;
+import org.myorg.modules.modules.exception.ModuleException;
 import org.myorg.modules.web.security.authentication.token.ApiKeyAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -16,31 +16,62 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
 
-@Component
+@Service
 public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
 
-    private DbApiKeyService dbApiKeyService;
-    private CryptoService cryptoService;
-
+    private ApiKeyService apiKeyService;
 
     @Autowired
-    public ApiKeyAuthenticationProvider(DbApiKeyService dbApiKeyService, CryptoService cryptoService) {
-        this.dbApiKeyService = dbApiKeyService;
-        this.cryptoService = cryptoService;
+    public ApiKeyAuthenticationProvider(ApiKeyService apiKeyService) {
+        this.apiKeyService = apiKeyService;
     }
 
-    private Set<PrivilegePair> getPrivileges(DbApiKey dbApiKey) {
-        DbAccessRole accessRole = dbApiKey.getAccessRole();
+    @Override
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        try {
+            return auth(authentication);
+        } catch (ModuleException e) {
+            throw new InternalAuthenticationServiceException(e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean supports(Class<?> clazz) {
+        return ApiKeyAuthenticationToken.class.equals(clazz);
+    }
+
+    private Authentication auth(Authentication authentication) throws ModuleException {
+        ApiKeyAuthenticationToken apiKeyAuth = (ApiKeyAuthenticationToken) authentication;
+        if (apiKeyAuth.isAuthenticated()) {
+            throw new InternalAuthenticationServiceException("Already authenticated");
+        }
+
+        String apiKey = (String) apiKeyAuth.getCredentials();
+        ApiKeyDto apiKeyDto = apiKeyService.findByValue(apiKey);
+
+        if (apiKeyDto == null) {
+            throw new BadCredentialsException("Bad API key: " + apiKey);
+        }
+
+        Set<PrivilegePair> privileges = getPrivileges(apiKeyDto);
+        apiKeyAuth = new ApiKeyAuthenticationToken(apiKey, privileges, createContext(apiKeyDto, privileges));
+        apiKeyAuth.setAuthenticated(true);
+
+        return apiKeyAuth;
+    }
+
+    private Set<PrivilegePair> getPrivileges(ApiKeyDto apiKeyDto) throws ModuleException {
+        AccessRoleDto accessRoleDto = apiKeyService.getAccessRole(apiKeyDto.getId());
         Set<PrivilegePair> privileges = new HashSet<>();
-        if (accessRole != null) {
-            for (DbPrivilege privilege : accessRole.getPrivileges()) {
+        if (accessRoleDto != null) {
+            for (PrivilegeDto privilegeDto : accessRoleDto.getPrivileges()) {
                 privileges.add(
-                        new PrivilegePair(privilege.getKey(), new AccessOpCollection(privilege.getValue()))
+                        new PrivilegePair(privilegeDto.getKey(), new AccessOpCollection(privilegeDto.getOps()))
                 );
             }
         }
@@ -48,35 +79,9 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
         return privileges;
     }
 
-    private ApiKeyContext createContext(DbApiKey dbApiKey, Set<PrivilegePair> privileges) {
-        ApiKeySource source = new ApiKeySource(dbApiKey.getId());
+    private ApiKeyContext createContext(ApiKeyDto apiKeyDto, Set<PrivilegePair> privileges) {
+        ApiKeySource source = new ApiKeySource(apiKeyDto.getId());
         return new ApiKeyContext(source, privileges);
     }
 
-    @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        ApiKeyAuthenticationToken apiKeyAuth = (ApiKeyAuthenticationToken) authentication;
-        if (apiKeyAuth.isAuthenticated()) {
-            throw new InternalAuthenticationServiceException("Already authed");
-        }
-
-        String apiKey = (String) apiKeyAuth.getCredentials();
-
-        byte[] encode = cryptoService.encode(apiKey);
-        DbApiKey dbApiKey = dbApiKeyService.findByValue(encode);
-        if (dbApiKey == null) {
-            throw new BadCredentialsException("Bad API key: " + apiKey);
-        }
-
-        Set<PrivilegePair> privileges = getPrivileges(dbApiKey);
-        apiKeyAuth = new ApiKeyAuthenticationToken(apiKey, privileges, createContext(dbApiKey, privileges));
-        apiKeyAuth.setAuthenticated(true);
-
-        return apiKeyAuth;
-    }
-
-    @Override
-    public boolean supports(Class<?> clazz) {
-        return ApiKeyAuthenticationToken.class.equals(clazz);
-    }
 }

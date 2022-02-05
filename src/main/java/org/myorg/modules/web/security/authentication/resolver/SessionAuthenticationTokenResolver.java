@@ -11,7 +11,7 @@ import java.util.Objects;
 @Service
 public class SessionAuthenticationTokenResolver implements AuthenticationTokenResolver {
 
-    private static final String SESSION = "session";
+    private static final String SESSION = "SESSION";
 
     private String getSession(HttpServletRequest request) {
         String session = request.getParameter(SESSION);

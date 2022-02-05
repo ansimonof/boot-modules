@@ -1,5 +1,7 @@
 package org.myorg.modules.access.privilege;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class AccessOpCollection {
@@ -48,6 +50,17 @@ public class AccessOpCollection {
 
     public int getValue() {
         return value;
+    }
+
+    public AccessOp[] getOps() {
+        List<AccessOp> result = new ArrayList<>();
+        for (AccessOp op : AccessOp.values()) {
+            if (contains(op)) {
+                result.add(op);
+            }
+        }
+
+        return result.toArray(new AccessOp[0]);
     }
 
     @Override

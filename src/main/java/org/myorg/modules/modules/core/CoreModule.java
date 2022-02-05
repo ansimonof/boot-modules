@@ -1,62 +1,57 @@
 package org.myorg.modules.modules.core;
 
 import org.myorg.modules.access.privilege.AccessOp;
-import org.myorg.modules.access.privilege.AccessOpCollection;
+import org.myorg.modules.modules.Module;
 import org.myorg.modules.modules.core.access.privilege.AccessRoleManagementPrivilege;
 import org.myorg.modules.modules.core.access.privilege.UserManagementPrivilege;
-import org.myorg.modules.modules.core.domainobjects.DbAccessRole;
-import org.myorg.modules.modules.core.domainobjects.DbApiKey;
-import org.myorg.modules.modules.core.domainobjects.DbPrivilege;
-import org.myorg.modules.modules.core.service.database.accessrole.AccessRoleService;
-import org.myorg.modules.modules.core.service.database.apikey.DbApiKeyService;
-import org.myorg.modules.crypto.CryptoService;
-import org.myorg.modules.modules.Module;
+import org.myorg.modules.modules.core.database.service.accessrole.AccessRoleBuilder;
+import org.myorg.modules.modules.core.database.service.accessrole.AccessRoleDto;
+import org.myorg.modules.modules.core.database.service.accessrole.AccessRoleService;
+import org.myorg.modules.modules.core.database.service.accessrole.PrivilegeBuilder;
+import org.myorg.modules.modules.core.database.service.apikey.ApiKeyBuilder;
+import org.myorg.modules.modules.core.database.service.apikey.ApiKeyDto;
+import org.myorg.modules.modules.core.database.service.apikey.ApiKeyService;
+import org.myorg.modules.modules.exception.ModuleException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Priority;
+import javax.transaction.Transactional;
+import java.util.HashSet;
 
 @Component
 @Priority(value = 1)
-public final class CoreModule extends Module {
+public class CoreModule extends Module {
 
     @Autowired
-    CryptoService cryptoService;
-
-    @Autowired
-    DbApiKeyService dbApiKeyService;
+    ApiKeyService apiKeyService;
 
     @Autowired
     private AccessRoleService accessRoleService;
 
     @Override
-    public void init() {
+    @Transactional
+    public void init() throws ModuleException {
 
-        DbPrivilege dbPrivilege1 = new DbPrivilege();
-        dbPrivilege1.setKey(UserManagementPrivilege.INSTANCE.getKey());
-        dbPrivilege1.setValue(new AccessOpCollection(AccessOp.READ, AccessOp.DELETE).getValue());
-        DbPrivilege dbPrivilege2 = new DbPrivilege();
-        dbPrivilege2.setKey(AccessRoleManagementPrivilege.INSTANCE.getKey());
-        dbPrivilege2.setValue(new AccessOpCollection(AccessOp.READ, AccessOp.DELETE).getValue());
-//        dbPrivilege1 = privilegeService.merge(dbPrivilege1);
+        PrivilegeBuilder privilege1 = PrivilegeBuilder.builder()
+                .key(UserManagementPrivilege.INSTANCE.getKey())
+                .ops(AccessOp.READ, AccessOp.DELETE);
 
-        DbAccessRole dbAccessRole = new DbAccessRole();
-        dbAccessRole.setName("ar");
-        dbAccessRole.addPrivilege(dbPrivilege1);
-        dbAccessRole.addPrivilege(dbPrivilege2);
-        dbAccessRole = accessRoleService.merge(dbAccessRole);
+        PrivilegeBuilder privilege2 = PrivilegeBuilder.builder()
+                .key(AccessRoleManagementPrivilege.INSTANCE.getKey())
+                .ops(AccessOp.READ, AccessOp.DELETE);
 
-        DbApiKey dbApiKey = new DbApiKey();
-        byte[] encode = cryptoService.encode("123");
-        dbApiKey.setValue(encode);
-        dbApiKey = dbApiKeyService.merge(dbApiKey);
-        dbApiKey.setAccessRole(dbAccessRole);
-        dbApiKeyService.merge(dbApiKey);
+        AccessRoleDto accessRoleDto = accessRoleService.create(AccessRoleBuilder.builder().name("ar"));
+        accessRoleDto = accessRoleService.addPrivileges(accessRoleDto.getId(), new HashSet<PrivilegeBuilder>() {{
+            add(privilege1);
+            add(privilege2);
+        }});
 
+        ApiKeyDto apiKeyDto = apiKeyService.create(ApiKeyBuilder.builder().name("APIQWE").value("123"));
     }
 
     @Override
-    public void destroy() {
+    public void destroy() throws ModuleException {
 
     }
 }

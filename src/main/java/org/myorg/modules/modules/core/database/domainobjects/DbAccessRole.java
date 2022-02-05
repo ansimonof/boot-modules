@@ -1,9 +1,12 @@
-package org.myorg.modules.modules.core.domainobjects;
+package org.myorg.modules.modules.core.database.domainobjects;
 
+import lombok.*;
 import org.myorg.modules.modules.core.CoreModuleConsts;
+import org.myorg.modules.modules.database.DomainObject;
 
 import javax.persistence.*;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -27,6 +30,10 @@ import java.util.Set;
                 )
         }
 )
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class DbAccessRole extends DomainObject {
 
     public static final String FIELD_NAME = "name";
@@ -34,15 +41,17 @@ public class DbAccessRole extends DomainObject {
     public static final String QUERY_FIND_ALL = "DbAccessRole.findAll";
     public static final String QUERY_FIND_BY_NAME = "DbAccessRole.findByName";
 
-    private String name;
-    private Set<DbPrivilege> privileges;
-
     @Column(name = FIELD_NAME, nullable = false)
-    public String getName() {
-        return name;
-    }
+    private String name;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "accessRole", cascade = CascadeType.ALL)
+    @ElementCollection
+    @CollectionTable(
+            name = CoreModuleConsts.DB_PREFIX + "privilege",
+            joinColumns = @JoinColumn(name = "fk_access_role")
+    )
+    //@OneToMany(mappedBy = "accessRole", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<PrivilegeEmbeddable> privileges;
+
 //    @JoinTable(
 //            name = "access_roles_privileges",
 //            joinColumns = @JoinColumn(
@@ -54,32 +63,26 @@ public class DbAccessRole extends DomainObject {
 //                    referencedColumnName = "id"
 //            )
 //    )
-    public Set<DbPrivilege> getPrivileges() {
-        return privileges;
-    }
 
-    //---------------------------
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPrivileges(Set<DbPrivilege> privileges) {
-//        if (privileges != null) {
-//            for (DbPrivilege privilege : privileges) {
-//                if (privilege != null) {
-//                    privilege.setAccessRole(this);
-//                }
-//            }
-//        }
-        this.privileges = privileges;
-    }
-
-    public void addPrivilege(DbPrivilege privilege) {
+    public void addPrivilege(PrivilegeEmbeddable privilege) {
         if (privileges == null) {
             privileges = new HashSet<>();
         }
         privileges.add(privilege);
-        privilege.setAccessRole(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        DbAccessRole that = (DbAccessRole) o;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }
