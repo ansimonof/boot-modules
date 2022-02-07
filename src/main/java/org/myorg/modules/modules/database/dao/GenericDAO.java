@@ -29,7 +29,7 @@ public interface GenericDAO<T extends DomainObject> {
 
     Stream<T> execNamedQuery(String query, HashMap<String, Object> params);
 
-    T checkExistenceAndGet(long id) throws ModuleException;
+    T checkExistenceAndReturn(long id) throws ModuleException;
 
     void checkUniqueness(T anotherDomainObject, Supplier<T> domainObjectSupplier, Supplier<? extends ModuleException> exceptionSupplier) throws ModuleException;
 }

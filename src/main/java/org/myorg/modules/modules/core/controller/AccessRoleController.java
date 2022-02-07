@@ -7,10 +7,7 @@ import org.myorg.modules.access.privilege.AccessOp;
 import org.myorg.modules.access.privilege.getter.PrivilegeGetter;
 import org.myorg.modules.modules.core.CoreModuleConsts;
 import org.myorg.modules.modules.core.access.privilege.AccessRoleManagementPrivilege;
-import org.myorg.modules.modules.core.database.service.accessrole.AccessRoleBuilder;
-import org.myorg.modules.modules.core.database.service.accessrole.AccessRoleDto;
-import org.myorg.modules.modules.core.database.service.accessrole.AccessRoleService;
-import org.myorg.modules.modules.core.database.service.accessrole.PrivilegeDto;
+import org.myorg.modules.modules.core.database.service.accessrole.*;
 import org.myorg.modules.modules.exception.ModuleException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +33,18 @@ public class AccessRoleController {
             privilege = AccessRoleManagementPrivilege.class,
             ops = { AccessOp.READ }
     )
-    public ResponseEntity<Set<AccessRoleDto>> getList() throws ModuleException {
+    public ResponseEntity<AccessRoleDto> findById(@RequestParam long id) throws ModuleException {
+        return ResponseEntity.ok(accessRoleService.findById(id));
+    }
+
+
+    @GetMapping("/list")
+    @AccessPermission(
+            context = AuthorizedContext.class,
+            privilege = AccessRoleManagementPrivilege.class,
+            ops = { AccessOp.READ }
+    )
+    public ResponseEntity<Set<AccessRoleDto>> list() throws ModuleException {
         return ResponseEntity.ok(accessRoleService.findAll());
     }
 

@@ -85,7 +85,7 @@ public abstract class GenericDAOImpl<T extends DomainObject> implements GenericD
     }
 
     @Override
-    public T checkExistenceAndGet(long id) throws ModuleException {
+    public T checkExistenceAndReturn(long id) throws ModuleException {
         T domainObject = findById(id);
         if (domainObject == null) {
             throw ModuleExceptionBuilder.buildNotFoundDomainObjectException(entityClass, id);

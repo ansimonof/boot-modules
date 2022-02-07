@@ -7,7 +7,7 @@ import org.myorg.modules.access.privilege.PrivilegePair;
 import org.myorg.modules.modules.core.database.service.accessrole.AccessRoleDto;
 import org.myorg.modules.modules.core.database.service.accessrole.PrivilegeDto;
 import org.myorg.modules.modules.core.database.service.apikey.ApiKeyDto;
-import org.myorg.modules.modules.core.database.service.apikey.ApiKeyService;
+import org.myorg.modules.modules.core.database.service.apikey.ApiKeyServiceImpl;
 import org.myorg.modules.modules.exception.ModuleException;
 import org.myorg.modules.web.security.authentication.token.ApiKeyAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +24,10 @@ import java.util.Set;
 @Service
 public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
 
-    private ApiKeyService apiKeyService;
+    private ApiKeyServiceImpl apiKeyService;
 
     @Autowired
-    public ApiKeyAuthenticationProvider(ApiKeyService apiKeyService) {
+    public ApiKeyAuthenticationProvider(ApiKeyServiceImpl apiKeyService) {
         this.apiKeyService = apiKeyService;
     }
 
@@ -66,7 +66,7 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
     }
 
     private Set<PrivilegePair> getPrivileges(ApiKeyDto apiKeyDto) throws ModuleException {
-        AccessRoleDto accessRoleDto = apiKeyService.getAccessRole(apiKeyDto.getId());
+        AccessRoleDto accessRoleDto = apiKeyService.findAccessRole(apiKeyDto.getId());
         Set<PrivilegePair> privileges = new HashSet<>();
         if (accessRoleDto != null) {
             for (PrivilegeDto privilegeDto : accessRoleDto.getPrivileges()) {

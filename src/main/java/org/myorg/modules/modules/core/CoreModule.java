@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Priority;
-import javax.transaction.Transactional;
 import java.util.HashSet;
 
 @Component
@@ -30,7 +29,6 @@ public class CoreModule extends Module {
     private AccessRoleService accessRoleService;
 
     @Override
-    @Transactional
     public void init() throws ModuleException {
 
         PrivilegeBuilder privilege1 = PrivilegeBuilder.builder()
