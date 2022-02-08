@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
             throw ModuleExceptionBuilder.buildEmptyValueException(DbUser.class, DbUser.FIELD_IS_ENABLED);
         }
 
-        if (!builder.getIsAdmin() || builder.getIsAdmin() == null) {
+        if (!builder.isContainAdmin() || builder.getIsAdmin() == null) {
             throw ModuleExceptionBuilder.buildEmptyValueException(DbUser.class, DbUser.FIELD_IS_ADMIN);
         }
 
@@ -109,29 +109,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public AccessRoleDto findAccessRole(long userId) throws ModuleException {
-        DbUser dbUser = userDAO.findById(userId);
-        if (dbUser == null) {
-            throw ModuleExceptionBuilder.buildNotFoundDomainObjectException(DbUser.class, userId);
-        }
-
-        return AccessRoleDto.from(dbUser.getAccessRole());
+    public Set<AccessRoleDto> findAllAccessRoles(long userId) throws ModuleException {
+        DbUser dbUser = userDAO.checkExistenceAndReturn(userId);
+        return dbUser.getAccessRoles().stream()
+                .map(AccessRoleDto::from)
+                .collect(Collectors.toSet());
     }
 
     @Override
     @Transactional
     public UserDto addAccessRole(long userId, long accessRoleId) throws ModuleException {
-        DbUser dbUser = userDAO.findById(userId);
-        if (dbUser == null) {
-            throw ModuleExceptionBuilder.buildNotFoundDomainObjectException(DbUser.class, userId);
-        }
+        DbUser dbUser = userDAO.checkExistenceAndReturn(userId);
+        DbAccessRole dbAccessRole = accessRoleDAO.checkExistenceAndReturn(accessRoleId);
+        dbUser.addAccessRole(dbAccessRole);
 
-        DbAccessRole dbAccessRole = accessRoleDAO.findById(accessRoleId);
-        if (dbAccessRole == null) {
-            throw ModuleExceptionBuilder.buildNotFoundDomainObjectException(DbAccessRole.class, accessRoleId);
-        }
+        return UserDto.from(userDAO.makePersistent(dbUser));
+    }
 
-        dbUser.setAccessRole(dbAccessRole);
+    @Override
+    @Transactional
+    public UserDto removeAccessRole(long userId, long accessRoleId) throws ModuleException {
+        DbUser dbUser = userDAO.checkExistenceAndReturn(userId);
+        DbAccessRole dbAccessRole = accessRoleDAO.checkExistenceAndReturn(accessRoleId);
+        dbUser.getAccessRoles().remove(dbAccessRole);
+
         return UserDto.from(userDAO.makePersistent(dbUser));
     }
 

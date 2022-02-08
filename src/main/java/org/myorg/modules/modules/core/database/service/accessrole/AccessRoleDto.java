@@ -1,17 +1,21 @@
 package org.myorg.modules.modules.core.database.service.accessrole;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.*;
 import org.myorg.modules.modules.core.database.domainobjects.DbAccessRole;
 import org.myorg.modules.modules.core.database.domainobjects.PrivilegeEmbeddable;
 import org.myorg.modules.modules.dto.AbstractDto;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@JsonTypeName("access_role")
+@JsonTypeInfo(include = JsonTypeInfo.As.WRAPPER_OBJECT, use = JsonTypeInfo.Id.NAME)
 @Getter
 @Setter
+@EqualsAndHashCode(callSuper = false, of = { "id" })
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -46,16 +50,4 @@ public class AccessRoleDto implements AbstractDto {
                 .build();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AccessRoleDto that = (AccessRoleDto) o;
-        return Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
-    }
 }

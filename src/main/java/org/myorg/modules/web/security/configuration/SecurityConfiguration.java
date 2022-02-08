@@ -39,11 +39,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                //.sessionManagement()
+                //.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                // .maximumSessions(2)
                // .and()
+                //.and()
+                .cors()
                 .and()
+                .csrf()
+                .disable()
                 .authorizeRequests()
                 .anyRequest().authenticated()
                 .accessDecisionManager(accessDecisionManager())

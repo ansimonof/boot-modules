@@ -32,6 +32,7 @@ import java.util.Set;
 )
 @Getter
 @Setter
+@EqualsAndHashCode(callSuper = false, of = {"name"})
 @NoArgsConstructor
 @AllArgsConstructor
 public class DbAccessRole extends DomainObject {
@@ -50,7 +51,7 @@ public class DbAccessRole extends DomainObject {
             joinColumns = @JoinColumn(name = "fk_access_role")
     )
     //@OneToMany(mappedBy = "accessRole", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Set<PrivilegeEmbeddable> privileges;
+    private Set<PrivilegeEmbeddable> privileges = new HashSet<>();
 
 //    @JoinTable(
 //            name = "access_roles_privileges",
@@ -66,23 +67,7 @@ public class DbAccessRole extends DomainObject {
 
 
     public void addPrivilege(PrivilegeEmbeddable privilege) {
-        if (privileges == null) {
-            privileges = new HashSet<>();
-        }
         privileges.add(privilege);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        DbAccessRole that = (DbAccessRole) o;
-        return Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
-    }
 }

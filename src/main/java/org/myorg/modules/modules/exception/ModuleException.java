@@ -1,14 +1,23 @@
 package org.myorg.modules.modules.exception;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
+
 import java.util.HashMap;
 
+@JsonIgnoreProperties(value = {"stackTrace", "cause", "localizedMessage", "suppressed"})
+@Getter
+@EqualsAndHashCode(callSuper = false, of = {"code", "message"})
 public class ModuleException extends Exception {
 
     private String code;
     private String message;
 
     private static String convertParamsToString(HashMap<String, Object> params) {
-        StringBuilder stringParams = new StringBuilder("params: {");
+        StringBuilder stringParams = new StringBuilder("parameters: {");
         for (String key : params.keySet()) {
             String value = params.get(key).toString();
             stringParams.append(key).append("=").append(value).append("; ");
@@ -36,9 +45,11 @@ public class ModuleException extends Exception {
 
     @Override
     public String toString() {
-        return "ModuleException{" +
-                "code='" + code + '\'' +
-                ", message='" + (message != null ? message : "") + '\'' +
-                '}';
+        JSONObject json = new JSONObject();
+        json.put("code", code);
+        if (!StringUtils.isEmpty(message)) {
+            json.put("message", message);
+        }
+        return json.toString();
     }
 }

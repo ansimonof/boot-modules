@@ -7,7 +7,6 @@ import org.myorg.modules.modules.core.database.dao.ApiKeyDAO;
 import org.myorg.modules.modules.core.database.domainobjects.DbAccessRole;
 import org.myorg.modules.modules.core.database.domainobjects.DbApiKey;
 import org.myorg.modules.modules.core.database.service.accessrole.AccessRoleDto;
-import org.myorg.modules.modules.database.service.DomainObjectService;
 import org.myorg.modules.modules.exception.ModuleException;
 import org.myorg.modules.modules.exception.ModuleExceptionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,16 +39,14 @@ public class ApiKeyServiceImpl implements ApiKeyService {
             return null;
         }
 
-        String value = cryptoService.decodeAsString(dbApiKey.getValue());
-        return ApiKeyDto.create(dbApiKey.getId(), dbApiKey.getName(), value);
+        return createDto(dbApiKey);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Set<ApiKeyDto> findAll() throws ModuleException {
         return apiKeyDAO.findAll().stream()
-                .map(dbApiKey -> ApiKeyDto.create(dbApiKey.getId(), dbApiKey.getName(),
-                        cryptoService.decodeAsString(dbApiKey.getValue())))
+                .map(this::createDto)
                 .collect(Collectors.toSet());
     }
 
@@ -69,8 +66,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         setFields(dbApiKey, builder);
 
         dbApiKey = apiKeyDAO.makePersistent(dbApiKey);
-
-        return ApiKeyDto.create(dbApiKey.getId(), dbApiKey.getName(), builder.getValue());
+        return createDto(dbApiKey);
     }
 
     @Override
@@ -89,9 +85,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         setFields(dbApiKey, builder);
 
         dbApiKey = apiKeyDAO.makePersistent(dbApiKey);
-
-        String value = cryptoService.decodeAsString(dbApiKey.getValue());
-        return ApiKeyDto.create(dbApiKey.getId(), dbApiKey.getName(), value);
+        return createDto(dbApiKey);
     }
 
     @Override
@@ -105,9 +99,11 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     @Transactional(readOnly = true)
-    public AccessRoleDto findAccessRole(long apiKeyId) throws ModuleException {
+    public Set<AccessRoleDto> findAllAccessRoles(long apiKeyId) throws ModuleException {
         DbApiKey dbApiKey = apiKeyDAO.checkExistenceAndReturn(apiKeyId);
-        return AccessRoleDto.from(dbApiKey.getAccessRole());
+        return dbApiKey.getAccessRoles().stream()
+                .map(AccessRoleDto::from)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -116,10 +112,20 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         DbApiKey dbApiKey = apiKeyDAO.checkExistenceAndReturn(apiKeyId);
         DbAccessRole dbAccessRole = accessRoleDAO.checkExistenceAndReturn(accessRoleId);
 
-        dbApiKey.setAccessRole(dbAccessRole);
+        dbApiKey.addAccessRole(dbAccessRole);
         dbApiKey = apiKeyDAO.makePersistent(dbApiKey);
-        String value = cryptoService.decodeAsString(dbApiKey.getValue());
-        return ApiKeyDto.create(dbApiKey.getId(), dbApiKey.getName(), value);
+        return createDto(dbApiKey);
+    }
+
+    @Override
+    @Transactional
+    public ApiKeyDto removeAccessRole(long apiKeyId, long accessRoleId) throws ModuleException {
+        DbApiKey dbApiKey = apiKeyDAO.checkExistenceAndReturn(apiKeyId);
+        DbAccessRole dbAccessRole = accessRoleDAO.checkExistenceAndReturn(accessRoleId);
+
+        dbApiKey.getAccessRoles().remove(dbAccessRole);
+        dbApiKey = apiKeyDAO.makePersistent(dbApiKey);
+        return createDto(dbApiKey);
     }
 
     @Override
@@ -132,6 +138,11 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         }
 
         return null;
+    }
+
+    private ApiKeyDto createDto(DbApiKey dbApiKey) {
+        String value = cryptoService.decodeAsString(dbApiKey.getValue());
+        return ApiKeyDto.create(dbApiKey.getId(), dbApiKey.getName(), value);
     }
 
     private void setFields(DbApiKey dbApiKey, ApiKeyBuilder builder) throws ModuleException {

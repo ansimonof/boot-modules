@@ -5,6 +5,8 @@ import org.myorg.modules.modules.core.CoreModuleConsts;
 import org.myorg.modules.modules.database.DomainObject;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -24,6 +26,7 @@ import javax.persistence.*;
 )
 @Getter
 @Setter
+@EqualsAndHashCode(callSuper = false, of = { "name" })
 @NoArgsConstructor
 @AllArgsConstructor
 public class DbApiKey extends DomainObject {
@@ -40,11 +43,33 @@ public class DbApiKey extends DomainObject {
     @Column(name = FIELD_VALUE, nullable = false)
     private byte[] value;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "fk_access_role",
-            referencedColumnName = "id"
-    )
-    private DbAccessRole accessRole;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(
+//            name = "fk_access_role",
+//            referencedColumnName = "id"
+//    )
+//    private DbAccessRole accessRole;
 
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "api_key_access_roles",
+        joinColumns = @JoinColumn(
+                name = "fk_api_key",
+                referencedColumnName = "id"
+        ),
+        inverseJoinColumns = @JoinColumn(
+                name = "fk_access_role",
+                referencedColumnName = "id"
+        )
+    )
+    private Set<DbAccessRole> accessRoles = new HashSet<>();
+
+    public void addAccessRole(DbAccessRole dbAccessRole) {
+        accessRoles.add(dbAccessRole);
+    }
+
+    public void removeAccessRole(DbAccessRole dbAccessRole) {
+        accessRoles.remove(dbAccessRole);
+    }
 }

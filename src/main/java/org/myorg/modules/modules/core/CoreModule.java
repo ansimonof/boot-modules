@@ -37,7 +37,7 @@ public class CoreModule extends Module {
 
         PrivilegeBuilder privilege2 = PrivilegeBuilder.builder()
                 .key(AccessRoleManagementPrivilege.INSTANCE.getKey())
-                .ops(AccessOp.READ, AccessOp.DELETE);
+                .ops(AccessOp.READ, AccessOp.WRITE, AccessOp.DELETE);
 
         AccessRoleDto accessRoleDto = accessRoleService.create(AccessRoleBuilder.builder().name("ar"));
         accessRoleDto = accessRoleService.addPrivileges(accessRoleDto.getId(), new HashSet<PrivilegeBuilder>() {{
@@ -46,6 +46,8 @@ public class CoreModule extends Module {
         }});
 
         ApiKeyDto apiKeyDto = apiKeyService.create(ApiKeyBuilder.builder().name("APIQWE").value("123"));
+        apiKeyService.addAccessRole(apiKeyDto.getId(), accessRoleDto.getId());
+
     }
 
     @Override

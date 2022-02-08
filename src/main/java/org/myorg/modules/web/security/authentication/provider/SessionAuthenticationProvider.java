@@ -1,6 +1,6 @@
 package org.myorg.modules.web.security.authentication.provider;
 
-import org.myorg.modules.modules.core.database.service.user.UserServiceImpl;
+import org.myorg.modules.modules.core.database.service.user.UserService;
 import org.myorg.modules.web.security.authentication.token.SessionAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class SessionAuthenticationProvider implements AuthenticationProvider {
 
     @Autowired
-    private UserServiceImpl userService;
+    private UserService userService;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {

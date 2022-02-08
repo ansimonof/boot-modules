@@ -2,12 +2,11 @@ package org.myorg.modules.web.security.authentication.provider;
 
 import org.myorg.modules.access.context.ApiKeyContext;
 import org.myorg.modules.access.context.source.ApiKeySource;
-import org.myorg.modules.access.privilege.AccessOpCollection;
 import org.myorg.modules.access.privilege.PrivilegePair;
+import org.myorg.modules.access.privilege.getter.PrivilegeGetter;
 import org.myorg.modules.modules.core.database.service.accessrole.AccessRoleDto;
-import org.myorg.modules.modules.core.database.service.accessrole.PrivilegeDto;
 import org.myorg.modules.modules.core.database.service.apikey.ApiKeyDto;
-import org.myorg.modules.modules.core.database.service.apikey.ApiKeyServiceImpl;
+import org.myorg.modules.modules.core.database.service.apikey.ApiKeyService;
 import org.myorg.modules.modules.exception.ModuleException;
 import org.myorg.modules.web.security.authentication.token.ApiKeyAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,17 +17,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.Set;
 
 @Service
 public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
 
-    private ApiKeyServiceImpl apiKeyService;
+    private final ApiKeyService apiKeyService;
+    private final PrivilegeGetter privilegeGetter;
 
     @Autowired
-    public ApiKeyAuthenticationProvider(ApiKeyServiceImpl apiKeyService) {
+    public ApiKeyAuthenticationProvider(ApiKeyService apiKeyService, PrivilegeGetter privilegeGetter) {
         this.apiKeyService = apiKeyService;
+        this.privilegeGetter = privilegeGetter;
     }
 
     @Override
@@ -53,7 +53,6 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
 
         String apiKey = (String) apiKeyAuth.getCredentials();
         ApiKeyDto apiKeyDto = apiKeyService.findByValue(apiKey);
-
         if (apiKeyDto == null) {
             throw new BadCredentialsException("Bad API key: " + apiKey);
         }
@@ -66,17 +65,8 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
     }
 
     private Set<PrivilegePair> getPrivileges(ApiKeyDto apiKeyDto) throws ModuleException {
-        AccessRoleDto accessRoleDto = apiKeyService.findAccessRole(apiKeyDto.getId());
-        Set<PrivilegePair> privileges = new HashSet<>();
-        if (accessRoleDto != null) {
-            for (PrivilegeDto privilegeDto : accessRoleDto.getPrivileges()) {
-                privileges.add(
-                        new PrivilegePair(privilegeDto.getKey(), new AccessOpCollection(privilegeDto.getOps()))
-                );
-            }
-        }
-
-        return privileges;
+        Set<AccessRoleDto> accessRoleDtos = apiKeyService.findAllAccessRoles(apiKeyDto.getId());
+        return privilegeGetter.mergeAccessRoles(accessRoleDtos);
     }
 
     private ApiKeyContext createContext(ApiKeyDto apiKeyDto, Set<PrivilegePair> privileges) {

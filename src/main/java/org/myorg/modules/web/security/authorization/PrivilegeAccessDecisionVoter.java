@@ -1,7 +1,12 @@
 package org.myorg.modules.web.security.authorization;
 
 import org.myorg.modules.access.context.Context;
+import org.myorg.modules.access.context.UserContext;
+import org.myorg.modules.access.context.source.UserSource;
 import org.myorg.modules.access.privilege.PrivilegePair;
+import org.myorg.modules.modules.core.database.service.user.UserDto;
+import org.myorg.modules.modules.core.database.service.user.UserService;
+import org.myorg.modules.modules.exception.ModuleException;
 import org.myorg.modules.web.ControllerInfo;
 import org.myorg.modules.web.ControllerMappingInfoInitializer;
 import org.myorg.modules.web.security.authentication.token.CustomAbstractAuthenticationToken;
@@ -20,11 +25,13 @@ import java.util.stream.Collectors;
 @Component
 public class PrivilegeAccessDecisionVoter implements AccessDecisionVoter {
 
-    private ControllerMappingInfoInitializer controllerMappingInfoInitializer;
+    private final ControllerMappingInfoInitializer controllerMappingInfoInitializer;
+    private final UserService userService;
 
     @Autowired
-    public PrivilegeAccessDecisionVoter(ControllerMappingInfoInitializer controllerMappingInfoInitializer) {
+    public PrivilegeAccessDecisionVoter(ControllerMappingInfoInitializer controllerMappingInfoInitializer, UserService userService) {
         this.controllerMappingInfoInitializer = controllerMappingInfoInitializer;
+        this.userService = userService;
     }
 
     @Override
@@ -64,6 +71,16 @@ public class PrivilegeAccessDecisionVoter implements AccessDecisionVoter {
         }
 
         // Чекаем привилегии
+        if (context instanceof UserContext) {
+            try {
+                UserSource source = (UserSource) context.getSource();
+                UserDto user = userService.findById(source.getId());
+                if (user != null && user.isAdmin()) {
+                    return ACCESS_GRANTED;
+                }
+            } catch (ModuleException ignore) { }
+        }
+
         Set<PrivilegePair> requestPrivileges = authentication.getAuthorities().stream()
                 .map(authority -> (PrivilegePair) authority)
                 .collect(Collectors.toSet());
@@ -83,7 +100,9 @@ public class PrivilegeAccessDecisionVoter implements AccessDecisionVoter {
                 .orElse(null);
 
         if (appropriateRequestPrivilege != null
-                && appropriateRequestPrivilege.getAccessOpCollection().contains(controllerPrivilege.getAccessOpCollection().getValue())) {
+                && appropriateRequestPrivilege.getAccessOpCollection().contains(
+                        controllerPrivilege.getAccessOpCollection().getValue())
+        ) {
             return ACCESS_GRANTED;
         }
 

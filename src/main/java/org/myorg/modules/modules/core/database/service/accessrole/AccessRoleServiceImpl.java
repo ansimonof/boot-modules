@@ -68,7 +68,7 @@ public class AccessRoleServiceImpl implements AccessRoleService {
     public void remove(long id) throws ModuleException {
         DbAccessRole dbAccessRole = accessRoleDAO.findById(id);
         if (dbAccessRole != null) {
-            accessRoleDAO.makePersistent(dbAccessRole);
+            accessRoleDAO.makeTransient(dbAccessRole);
         }
     }
 
@@ -88,11 +88,11 @@ public class AccessRoleServiceImpl implements AccessRoleService {
         Set<PrivilegeEmbeddable> privileges = new HashSet<>();
         for (PrivilegeBuilder builder : builders) {
             if (!builder.isContainKey() || StringUtils.isEmpty(builder.getKey())) {
-                throw ModuleExceptionBuilder.buildEmptyPrivilegeKeyException();
+                throw ModuleExceptionBuilder.buildEmptyValueException(PrivilegeEmbeddable.FIELD_KEY);
             }
 
             if (!builder.isContainOps() || builder.getOps() == null) {
-                throw ModuleExceptionBuilder.buildEmptyAccessOpsException();
+                throw ModuleExceptionBuilder.buildEmptyValueException(PrivilegeEmbeddable.FIELD_VALUE);
             }
 
             PrivilegeEmbeddable privilege = new PrivilegeEmbeddable();
