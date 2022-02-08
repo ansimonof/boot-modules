@@ -1,8 +1,6 @@
 package org.myorg.modules.web.security.configuration;
 
-import org.myorg.modules.web.security.authentication.provider.AnonymousAuthenticationProvider;
-import org.myorg.modules.web.security.authentication.provider.ApiKeyAuthenticationProvider;
-import org.myorg.modules.web.security.authentication.provider.SessionAuthenticationProvider;
+import org.myorg.modules.web.security.authentication.provider.CustomAuthenticationProvider;
 import org.myorg.modules.web.security.authorization.PrivilegeAccessDecisionVoter;
 import org.myorg.modules.web.security.filter.AuthenticationTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +12,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import java.util.Arrays;
 import java.util.List;
@@ -61,20 +57,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 //    }
 
     @Autowired
-    private AnonymousAuthenticationProvider anonymousAuthenticationProvider;
-
-    @Autowired
-    private ApiKeyAuthenticationProvider apiKeyAuthenticationProvider;
-
-    @Autowired
-    private SessionAuthenticationProvider sessionAuthenticationProvider;
+    private List<? extends CustomAuthenticationProvider> authenticationProviders;
 
     @Override
     @Autowired
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(anonymousAuthenticationProvider);
-        auth.authenticationProvider(apiKeyAuthenticationProvider);
-        auth.authenticationProvider(sessionAuthenticationProvider);
+        authenticationProviders.forEach(auth::authenticationProvider);
     }
 
 }

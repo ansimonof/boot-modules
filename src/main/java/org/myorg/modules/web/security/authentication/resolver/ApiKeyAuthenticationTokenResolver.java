@@ -14,18 +14,15 @@ public class ApiKeyAuthenticationTokenResolver implements AuthenticationTokenRes
     private static final String API_KEY = "api_key";
 
     private String getApiKey(HttpServletRequest request) {
-        String apiKey = request.getParameter(API_KEY);
-        if (apiKey == null) {
-            if (request.getCookies() != null) {
-                for (Cookie cookie : request.getCookies()) {
-                    if (Objects.equals(cookie.getName(), API_KEY)) {
-                        return cookie.getValue();
-                    }
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (Objects.equals(cookie.getName(), API_KEY)) {
+                    return cookie.getValue();
                 }
             }
         }
 
-        return apiKey;
+        return null;
     }
 
     @Override

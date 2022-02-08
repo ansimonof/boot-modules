@@ -3,13 +3,12 @@ package org.myorg.modules.web.security.authentication.provider;
 import org.myorg.modules.modules.core.database.service.user.UserService;
 import org.myorg.modules.web.security.authentication.token.SessionAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SessionAuthenticationProvider implements AuthenticationProvider {
+public class SessionAuthenticationProvider implements CustomAuthenticationProvider {
 
     @Autowired
     private UserService userService;

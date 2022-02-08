@@ -22,7 +22,7 @@ import java.util.List;
 @Component
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
 
-    private final List<AuthenticationTokenResolver> authenticationTokenResolvers;
+    private final List<? extends AuthenticationTokenResolver> authenticationTokenResolvers;
 
     private final RequestMappingHandlerMapping handlerMapping;
 

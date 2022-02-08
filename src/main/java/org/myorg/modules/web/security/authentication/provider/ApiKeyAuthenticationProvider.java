@@ -10,7 +10,6 @@ import org.myorg.modules.modules.core.database.service.apikey.ApiKeyService;
 import org.myorg.modules.modules.exception.ModuleException;
 import org.myorg.modules.web.security.authentication.token.ApiKeyAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Set;
 
 @Service
-public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
+public class ApiKeyAuthenticationProvider implements CustomAuthenticationProvider {
 
     private final ApiKeyService apiKeyService;
     private final PrivilegeGetter privilegeGetter;
