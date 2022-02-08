@@ -53,7 +53,7 @@ public class DbApiKey extends DomainObject {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "api_key_access_roles",
+        name = CoreModuleConsts.DB_PREFIX + "api_key_access_roles",
         joinColumns = @JoinColumn(
                 name = "fk_api_key",
                 referencedColumnName = "id"

@@ -65,7 +65,7 @@ public class DbUser extends DomainObject {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "users_access_roles",
+            name = CoreModuleConsts.DB_PREFIX + "users_access_roles",
             joinColumns = @JoinColumn(
                     name = "fk_user",
                     referencedColumnName = "id"
