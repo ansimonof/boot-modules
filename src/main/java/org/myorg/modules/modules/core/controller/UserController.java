@@ -1,5 +1,8 @@
 package org.myorg.modules.modules.core.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.myorg.modules.access.AccessPermission;
 import org.myorg.modules.access.context.AuthorizedContext;
 import org.myorg.modules.access.context.UnauthorizedContext;
@@ -33,13 +36,12 @@ public class UserController {
             context = UnauthorizedContext.class
     )
     public ResponseEntity<UserDto> registration(
-            @RequestParam final String username,
-            @RequestParam final String passwordHash
+            @RequestBody final RegistrationForm registrationForm
     ) throws ModuleException {
         UserDto user = userService.create(
                 UserBuilder.builder()
-                        .username(username)
-                        .passwordHash(passwordHash)
+                        .username(registrationForm.username)
+                        .passwordHash(registrationForm.passwordHash)
                         .isEnabled(true)
                         .isAdmin(false)
         );
@@ -96,6 +98,16 @@ public class UserController {
     ) throws ModuleException {
         userService.removeAccessRole(userId, accessRoleId);
         return ResponseEntity.ok(true);
+    }
+
+    @Data
+    @NoArgsConstructor
+    private static class RegistrationForm {
+
+        @JsonProperty("username")
+        private String username;
+        @JsonProperty("password_hash")
+        private String passwordHash;
     }
 
 }

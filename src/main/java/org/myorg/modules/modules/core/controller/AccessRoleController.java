@@ -1,5 +1,7 @@
 package org.myorg.modules.modules.core.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -43,7 +45,7 @@ public class AccessRoleController {
             ops = { AccessOp.READ }
     )
     public ResponseEntity<AccessRoleDto> findById(
-            @RequestParam long id
+            @RequestParam Long id
     ) throws ModuleException {
         return ResponseEntity.ok(accessRoleService.findById(id));
     }
@@ -169,18 +171,19 @@ public class AccessRoleController {
         return ResponseEntity.ok(accessRoleDto);
     }
 
-    @Getter
-    @Setter
+    @Data
     @NoArgsConstructor
     private static class PrivilegeSet {
+        @JsonProperty("privileges")
         List<PrivilegeRequest> privileges;
     }
 
-    @Getter
-    @Setter
+    @Data
     @NoArgsConstructor
     private static class PrivilegeRequest {
+        @JsonProperty("key")
         String key;
+        @JsonProperty("ops")
         AccessOp[] ops;
     }
 
