@@ -5,6 +5,7 @@ import org.myorg.modules.modules.exception.ModuleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -13,6 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@PropertySource(
+        value = {
+                "boot-properties/modules.application.properties",
+                "boot-properties/database.application.properties"
+        }
+)
 public class Modules {
 
     private static final Logger log = LoggerFactory.getLogger(Modules.class);
@@ -66,8 +73,7 @@ public class Modules {
             for (Module module : modules) {
                 if (!result.contains(module)) {
                     boolean isNext = modules.stream().allMatch(
-                            m -> !module.config.getDependencies().contains(m.getClass()) || result.contains(m)
-                    );
+                            m -> !module.config.getDependencies().contains(m.getClass()) || result.contains(m));
                     if (isNext) {
                         next = module;
                         break;
