@@ -35,6 +35,16 @@ public class ModuleExceptionBuilder {
         }});
     }
 
+    public static ModuleException buildNotFoundDomainObjectException(Class<? extends DomainObject> clazz,
+                                                                     String fieldName,
+                                                                     Serializable value) {
+        return new ModuleException("not_found_domain_object", new HashMap<String, Object>() {{
+            put("field_name", fieldName);
+            put("value", value);
+            put("class", clazz.getSimpleName());
+        }});
+    }
+
     public static ModuleException buildNotUniqueDomainObjectException(Class<? extends DomainObject> clazz,
                                                                       String fieldName,
                                                                       Serializable value) {
@@ -57,10 +67,6 @@ public class ModuleExceptionBuilder {
         return new ModuleException("empty_value", new HashMap<String, Object>() {{
             put("field_name", fieldName);
         }});
-    }
-
-    public static ModuleException buildAdminCannotBeDisabledException() {
-        return new ModuleException("admin_cannot_be_disabled");
     }
 
 }
