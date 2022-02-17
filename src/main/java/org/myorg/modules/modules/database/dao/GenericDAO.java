@@ -5,7 +5,7 @@ import org.myorg.modules.modules.exception.ModuleException;
 import org.myorg.modules.utils.Supplier;
 
 import javax.persistence.LockModeType;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -27,7 +27,7 @@ public interface GenericDAO<T extends DomainObject> {
 
     void checkVersion(T entity, boolean forceUpdate);
 
-    Stream<T> execNamedQuery(String query, HashMap<String, Object> params);
+    Stream<T> execNamedQuery(String query, Map<String, Object> params);
 
     T checkExistenceAndReturn(long id) throws ModuleException;
 

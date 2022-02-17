@@ -11,10 +11,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 public abstract class GenericDAOImpl<T extends DomainObject> implements GenericDAO<T> {
@@ -78,7 +75,7 @@ public abstract class GenericDAOImpl<T extends DomainObject> implements GenericD
     }
 
     @Override
-    public Stream<T> execNamedQuery(String query, HashMap<String, Object> params) {
+    public Stream<T> execNamedQuery(String query, Map<String, Object> params) {
         TypedQuery<T> namedQuery = em.createNamedQuery(query, entityClass);
         params.forEach(namedQuery::setParameter);
         return namedQuery.getResultStream();
