@@ -38,7 +38,7 @@ public class Modules {
         modules.forEach(module -> {
             Class<? extends Module> moduleClazz = module.getClass();
             if (!moduleClazz.isAnnotationPresent(BootModule.class)) {
-                log.error("Module {} doesn't have @BootModule annotation", moduleClazz.getSimpleName());
+                log.error("Module {} doesn't have @BootModule annotation", moduleClazz.getCanonicalName());
                 throw new RuntimeException();
             }
 
@@ -51,10 +51,11 @@ public class Modules {
         checkAndSortModuleDependencies();
 
         for (Module module : modules) {
-            module.init();
+            module.onStart();
+            log.info("Module is initialized: {}", module.getClass().getCanonicalName());
         }
 
-        log.info("Module are initialized ({})", modules);
+        log.info("All modules are initialized");
     }
 
     @PreDestroy
@@ -62,7 +63,7 @@ public class Modules {
         log.info("Modules are destroying...");
 
         for (Module module : Lists.reverse(modules)) {
-            module.destroy();
+            module.onDestroy();
         }
     }
 

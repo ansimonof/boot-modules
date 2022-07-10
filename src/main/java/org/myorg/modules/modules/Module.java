@@ -10,7 +10,7 @@ public abstract class Module {
         return config;
     }
 
-    public abstract void init() throws ModuleException;
+    public abstract void onStart() throws ModuleException;
 
-    public abstract void destroy() throws ModuleException;
+    public abstract void onDestroy() throws ModuleException;
 }
