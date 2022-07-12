@@ -39,7 +39,7 @@ public abstract class DomainObjectService<
     }
 
     @Transactional
-    public void remove(long id) {
+    public void remove(long id) throws ModuleException {
         D domainObject = dao.findById(id);
         if (domainObject != null) {
             dao.makeTransient(domainObject);
